@@ -1,0 +1,24 @@
+{
+  "name": "kilnhill-data-inbound-api",
+  "version": "1.0.0",
+  "description": "Data Inbound API for Project Kilnhill",
+  "main": "index.js",
+  "repository": "git@github.com:EitZei/kilnhill-data-inbound-api.git",
+  "author": "Antti Järvinen <antti.jarvinen@alupark.fi>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "influx": "^5.0.7",
+    "lodash": "^4.17.11",
+    "winston": "^3.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.8.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "prettier-eslint": "^8.8.2"
+  }
+}
