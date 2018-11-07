@@ -69,7 +69,7 @@ app.post('/api/latest/data', (req, res) => {
 
     // Timestamp
     if (_.isFinite(dataItem.timestamp)) {
-      measurement.timestamp = dataItem.timestamp;
+      measurement.timestamp = new Date(dataItem.timestamp);
     }
 
     return measurement;
