@@ -1,37 +1,19 @@
 require('./lib/conf/logging');
 
 const log = require('winston');
-const Influx = require('influx');
+
 const express = require('express');
 const os = require('os');
 const _ = require('lodash');
+
+const deviceRegistry = require('./lib/conf/device-registry');
+const influxProvider = require('./lib/conf/influxdb');
 
 log.info('Starting up Data Inbound API...');
 
 const measurementsName = 'ruuvitags';
 
-const influx = new Influx.InfluxDB({
-  host: process.env.INFLUXDB_HOST,
-  database: process.env.INFLUXDB_DATABASE,
-  username: process.env.INFLUXDB_USERNAME,
-  password: process.env.INFLUXDB_PASSWORD,
-  schema: [{
-    measurement: measurementsName,
-    fields: {
-      humidity: Influx.FieldType.FLOAT,
-      temperature: Influx.FieldType.FLOAT,
-      pressure: Influx.FieldType.INTEGER,
-      accelerationX: Influx.FieldType.INTEGER,
-      accelerationY: Influx.FieldType.INTEGER,
-      accelerationZ: Influx.FieldType.INTEGER,
-      battery: Influx.FieldType.INTEGER,
-    },
-    tags: [
-      'host', 'id',
-    ],
-  }],
-});
-
+const influx = influxProvider(measurementsName);
 
 const app = express();
 app.use(express.json());
@@ -55,29 +37,58 @@ app.get('/api/latest/health', (req, res) => {
 });
 
 app.post('/api/latest/data', (req, res) => {
-  const {
-    body,
-  } = req;
+  const originalBody = req.body;
 
-  if (!body.id || !body.data) {
-    log.warn('Unexpected message without ID or data');
+  const body = _.isArray(originalBody) ? originalBody : [originalBody];
+
+  let invalidMeasurements = false;
+
+  const measurements = body.map((dataItem) => {
+    if (!dataItem.id || !dataItem.data) {
+      invalidMeasurements = true;
+    }
+
+    // Tags
+    const tags = {
+      host: os.hostname(),
+      id: dataItem.id,
+    };
+
+    const name = deviceRegistry[dataItem.id];
+
+    if (_.isString(name)) {
+      tags.name = name;
+    }
+
+    // Measurement
+    const measurement = {
+      measurement: measurementsName,
+      tags,
+      fields: dataItem.data,
+    };
+
+    // Timestamp
+    if (_.isFinite(dataItem.timestamp)) {
+      measurement.timestamp = dataItem.timestamp;
+    }
+
+    return measurement;
+  });
+
+  if (invalidMeasurements) {
+    log.warn('Unexpected message with measurements without ID or data');
     res.sendStatus(400);
     return;
   }
 
-  influx.writePoints([{
-    measurement: 'ruuvitags',
-    tags: {
-      host: os.hostname(),
-      id: body.id,
-    },
-    fields: body.data,
-  }]).then(() => {
-    log.debug(`Successfully wrote to InfluxDB from ID ${body.id}`);
-    res.sendStatus(202);
-  }).catch((e) => {
-    log.error(`Error in writing data to InfluxDB from ID ${body.id}. ${e}`);
-  });
+
+  influx.writePoints(measurements)
+    .then(() => {
+      log.debug(`Successfully wrote ${measurements.length} items to InfluxDB.`);
+      res.sendStatus(202);
+    }).catch((e) => {
+      log.error(`Error in writing data to InfluxDB. ${e}`);
+    });
 });
 
 const port = process.env.HTTP_PORT || 8888;

@@ -1,0 +1,12 @@
+{
+  "id": "e41482bcb714",
+  "data": {
+    "humidity": 22.5,
+    "temperature": 31.41,
+    "pressure": 100473,
+    "accelerationX": -85,
+    "accelerationY": -75,
+    "accelerationZ": 1007,
+    "battery": 3091
+  }
+}
