@@ -54,9 +54,10 @@ app.post('/api/latest/data', (req, res) => {
       id: dataItem.id,
     };
 
-    const name = deviceRegistry[dataItem.id];
+    const { tenant, name } = deviceRegistry[dataItem.id];
 
     if (_.isString(name)) {
+      tags.tenant = tenant;
       tags.name = name;
     }
 
