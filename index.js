@@ -8,12 +8,14 @@ const _ = require('lodash');
 
 const deviceRegistry = require('./lib/conf/device-registry');
 const influxProvider = require('./lib/conf/influxdb');
+const eventHubProvider = require('./lib/conf/event-hub');
 
 log.info('Starting up Data Inbound API...');
 
 const measurementsName = 'ruuvitags';
 
 const influx = influxProvider(measurementsName);
+const eventHub = eventHubProvider;
 
 const app = express();
 app.use(express.json());
@@ -84,6 +86,7 @@ app.post('/api/latest/data', (req, res) => {
 
 
   influx.writePoints(measurements)
+    .then(() => eventHub.send(measurements))
     .then(() => {
       log.debug(`Successfully wrote ${measurements.length} items to InfluxDB.`);
       res.sendStatus(202);

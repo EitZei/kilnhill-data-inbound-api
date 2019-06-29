@@ -10,6 +10,7 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "@azure/event-hubs": "^2.1.0",
     "express": "^4.16.4",
     "influx": "^5.0.7",
     "lodash": "^4.17.11",
