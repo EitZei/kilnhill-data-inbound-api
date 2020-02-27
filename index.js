@@ -86,7 +86,7 @@ app.post('/api/latest/data', (req, res) => {
 
 
   influx.writePoints(measurements)
-    .then(() => eventHub.send(measurements))
+    .then(() => eventHub.send({ body: measurements }))
     .then(() => {
       log.debug(`Successfully wrote ${measurements.length} items to InfluxDB.`);
       res.sendStatus(202);
