@@ -13,7 +13,7 @@
     "@azure/event-hubs": "^2.1.0",
     "express": "^4.16.4",
     "influx": "^5.0.7",
-    "lodash": "^4.17.13",
+    "lodash": "^4.17.21",
     "winston": "^3.1.0"
   },
   "devDependencies": {
